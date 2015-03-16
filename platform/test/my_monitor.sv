@@ -5,20 +5,29 @@ class my_monitor extends uvm_monitor;
 	//factory machanism
 	`uvm_component_utils(my_monitor)
 
-	function new(string name="my_monitor", uvm_component parent = null);
-		super.new(name,parent);
-	endfunction
+	uvm_analysis_port #(my_transcation) ap;
 
-	virtual function void build_phase(uvm_phase phase);
-		super.build_phase(phase);
-		if(!uvm_config_db#(virtual my_if)::get(this,"","vif",vif))
-			`uvm_fatal("my_monitor","virtual interface must be set for vif!");
-	endfunction
-
+	extern function new(string name="my_monitor", uvm_component parent=null);
+	extern function build_phase(uvm_phase phase);	
 	extern task main_phase(uvm_phase phase);
 	extern task collect_one_pkt(my_transaction tr);
 
 endclass
+
+function my_monitor::new(string name = "my_monitor", uvm_component parent = null);
+	super.new(name, parent);
+endfunction
+
+function void my_monitor::build_phase(uvm_phase phase);
+	super.build_phase(phase);
+
+	//connect to virtual interface
+	if(!uvm_config_db#(virtual my_if)::get(this,"","vif",vif))
+		`uvm_fatal("my_monitor","virtual interface must be set for vif!");
+
+	// connect uvm_analysis_port
+	ap = new("ap", this);
+endfunction
 
 task my_monitor::main_phase(uvm_phase phase);
 	my_transaction tr;
@@ -26,6 +35,8 @@ task my_monitor::main_phase(uvm_phase phase);
 	while(1) begin
 		tr = new("tr");
 		collect_one_pkt(tr);
+		//write to analysis_port
+		ap.write(tr);
 	end
 
 endtask

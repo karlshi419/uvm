@@ -34,4 +34,18 @@ class my_transaction extends uvm_sequence_item;
 		$display("crc = %0h", crc);
 	endfunction
 
+	// Used in my_model
+	function void my_copy(my_transcation tr);
+		if(tr == null)
+			`uvm_fatal("my_transcation", "trancation empty.");
+		dmac = tr.dmac;
+		smac = tr.smac;
+		ether_type = tr.ether_type;
+		pload = new[tr.pload.size()];
+		for(int i = 0; i<pload.size(); i++) begin
+			pload[i] = tr.pload[i];
+		end
+		crc = tr.crc;
+	endfunction
+
 endclass
